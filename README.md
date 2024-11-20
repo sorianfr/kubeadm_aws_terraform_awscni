@@ -21,4 +21,6 @@
    scp -i "my_k8s_key.pem" kubeadm-config-join.yaml ubuntu@192.168.80.59:~/
    scp -i "my_k8s_key.pem" kubeadm-config-join.yaml ubuntu@192.168.80.60:~/
 
-sudo kubeadm init --config=kubeadm-config.yaml
+5. SSH inton Controlplane and start kubeadm
+   ```bash
+   sudo kubeadm init --config=kubeadm-config.yaml
