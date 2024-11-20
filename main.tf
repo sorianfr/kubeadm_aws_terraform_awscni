@@ -120,18 +120,19 @@ resource "aws_security_group" "public_sg" {
   vpc_id = aws_vpc.k8s_vpc.id
 
   ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"] # Open to the world for SSH; consider restricting for production
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1" # Allow all protocols
+    cidr_blocks = ["0.0.0.0/0"] # Open to the world; consider restricting for production
   }
 
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = "-1"
+    protocol    = "-1" # Allow all protocols
     cidr_blocks = ["0.0.0.0/0"]
   }
+
 
   tags = {
     Name = "public_sg"
@@ -143,84 +144,16 @@ resource "aws_security_group" "k8s_sg" {
   vpc_id = aws_vpc.k8s_vpc.id
 
   ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    security_groups = [aws_security_group.public_sg.id] # Allow SSH from the bastion
-  }
-
-  ingress {
-    from_port   = 6443
-    to_port     = 6443
-    protocol    = "tcp"
-    cidr_blocks = ["192.168.0.0/16"] # Kubernetes API access within VPC
-  }
-
-  ingress {
-    from_port   = 30000
-    to_port     = 32767
-    protocol    = "tcp"
-    cidr_blocks = ["192.168.0.0/16"] # NodePort range within VPC
-  }
-
-  ingress {
-    from_port   = 10250
-    to_port     = 10250
-    protocol    = "tcp"
-    cidr_blocks = ["192.168.0.0/16"] # # Kubelet communication within VPC
-  }
- 
-   ingress {
-    from_port   = 5473
-    to_port     = 5473
-    protocol    = "tcp"
-    cidr_blocks = ["192.168.0.0/16"] # Service communication within VPC
-  }
-
-  # BGP for Calico
-  ingress {
-    from_port   = 179
-    to_port     = 179
-    protocol    = "tcp"
-    cidr_blocks = ["192.168.0.0/16"] # Ensure this matches the pod network CIDR
-  }
-
-  # Allow VXLAN for Calico (UDP 4789)
-  ingress {
-    from_port   = 4789
-    to_port     = 4789
-    protocol    = "udp"
-    cidr_blocks = ["10.244.0.0/16"] # Pod network CIDR
-  }
-
-  # Allow pod-to-pod communication within the cluster
-  ingress {
     from_port   = 0
-    to_port     = 65535
-    protocol    = "tcp"
-    cidr_blocks = ["10.244.0.0/16"] # Pod network CIDR
-  }
-
-  # Allow IP-in-IP (used by Calico)
-  ingress {
-    from_port   = -1
-    to_port     = -1
-    protocol    = "4" # Protocol 4 is for IP-in-IP
-    cidr_blocks = ["10.244.0.0/16"] # Pod network CIDR
-  }
-
-  # etcd Communication (Control Plane Only)
-  ingress {
-    from_port   = 2379
-    to_port     = 2380
-    protocol    = "tcp"
-    cidr_blocks = ["192.168.80.58/32"] # Restrict to control plane's private IP
+    to_port     = 0
+    protocol    = "-1" # Allow all protocols
+    cidr_blocks = ["0.0.0.0/0"] # Open to the world; consider restricting for production
   }
 
   egress {
     from_port   = 0
     to_port     = 0
-    protocol    = "-1"
+    protocol    = "-1" # Allow all protocols
     cidr_blocks = ["0.0.0.0/0"]
   }
 
