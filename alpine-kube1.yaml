@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: alpine-kube1
+spec:
+  replicas: 2
+  selector: 
+    matchLabels:
+      app: alpine-kube1
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: alpine-kube1
+    spec:
+      nodeName: controlplane
+      containers:
+      - image: alpine
+        name: alpine
+        stdin: true
+        tty: true  

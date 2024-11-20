@@ -1,0 +1,75 @@
+curl -o terraform.zip https://releases.hashicorp.com/terraform/1.5.6/terraform_1.5.6_linux_amd64.zip && unzip terraform.zip && sudo mv terraform /usr/local/bin/
+
+
+terraform init 
+terraform apply 
+
+sudo kubeadm init --config=kubeadm-config.yaml
+
+..
+sudo kubeadm-config-join change node-ip for the relevant node ip (worker1, worker2)
+
+add token and caCertHashes to kubeadm-config-join  
+
+sudo kubeadm join --config=kubeadm-config-join.yaml
+
+kubectl taint nodes controlplane node-role.kubernetes.io/control-plane:NoSchedule-
+
+
+Calico
+
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml
+
+
+curl https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/custom-resources.yaml -O
+
+
+nano custom-resources.yaml
+
+"Replace cidr to match our configuration 10.244.0.0/16
+"Replace encapusaltion to None" Why Use Non-Encapsulation Mode?
+ChatGPT: Direct Node Communication: Nodes within the same subnet can reach each other without requiring encapsulation, as AWS ensures direct connectivity within a subnet.
+
+kubectl apply -f custom-resources.yaml
+
+watch -n1 kubectl get tigerastatus
+
+Wait for all components to be availability_zone
+
+Install Calicoctl tool
+
+wget https://github.com/projectcalico/calico/releases/download/v3.28.0/calicoctl-linux-amd64
+chmod +x ./calicoctl-linux-amd64
+sudo mv calicoctl-linux-amd64 /usr/local/bin/calicoctl
+
+
+
+calicoctl ipam show --show-blocks
+
+kubectl get ipamblocks.crd.projectcalico.org -o jsonpath="{range .items[*]}{'podNetwork: '}{.spec.cidr}{'\t NodeIP: '}{.spec.affinity}{'\n'}{end}"
+
+kubectl apply -f alpine-kube1.yaml
+kubectl apply -f alpine-kube2.yaml
+
+kubectl get deployments
+kubectl get nodes -o wide 
+
+
+k9s
+
+wget https://github.com/derailed/k9s/releases/download/v0.32.7/k9s_linux_amd64.deb && sudo apt install ./k9s_linux_amd64.deb && rm k9s_linux_amd64.deb
+
+go to shell of first pod in controlplane and do:
+ip a
+
+traceroute -n 10.244.49.69
+
+ubuntu@controlplane:~$ ip route get 10.244.49.69 fibmatch
+10.244.49.69 dev cali852e960a348 scope link 
+ubuntu@controlplane:~$ ip route get 10.244.49.68 fibmatch
+10.244.49.68 dev cali44f02c21796 scope link 
+
+both pods ip have direct route
+
+lets look at how the traffic flows between pods between differents nodes
+we go to shell of pod in worker1
