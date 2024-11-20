@@ -340,6 +340,11 @@ resource "null_resource" "copy_key_to_bastion" {
     command = <<-EOT
       sleep 60
       scp -i "my_k8s_key.pem" -o StrictHostKeyChecking=no "my_k8s_key.pem" ubuntu@${aws_instance.bastion.public_dns}:~/
+      scp -i "my_k8s_key.pem" -o StrictHostKeyChecking=no "kubeadm-config.yaml" ubuntu@${aws_instance.bastion.public_dns}:~/
+      scp -i "my_k8s_key.pem" -o StrictHostKeyChecking=no "kubeadm-config-join.yaml" ubuntu@${aws_instance.bastion.public_dns}:~/
+      scp -i "my_k8s_key.pem" -o StrictHostKeyChecking=no "alpine-kube1.yaml" ubuntu@${aws_instance.bastion.public_dns}:~/
+      scp -i "my_k8s_key.pem" -o StrictHostKeyChecking=no "alpine-kube2.yaml" ubuntu@${aws_instance.bastion.public_dns}:~/
+
     EOT
   }
 
