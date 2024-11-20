@@ -14,4 +14,20 @@
    
 4. Initialize and Apply Terraform
 
-5. 
+scp -i "my_k8s_key.pem" alpine-kube2.yaml ubuntu@ec2-54-166-130-91.compute-1.amazonaws.com:~/
+alpine-kube2.yaml                                                                                                                                                           
+scp -i "my_k8s_key.pem" alpine-kube1.yaml ubuntu@ec2-54-166-130-91.compute-1.amazonaws.com:~/
+alpine-kube1.yaml                                                                                                                                                           
+scp -i "my_k8s_key.pem" kubeadm-config.yaml ubuntu@ec2-54-166-130-91.compute-1.amazonaws.com:~/
+kubeadm-config.yaml                                                                                                                                                        
+scp -i "my_k8s_key.pem" kubeadm-config-join.yaml ubuntu@ec2-54-166-130-91.compute-1.amazonaws.com:~/
+kubeadm-config-join.yaml                                                                                                         
+
+
+scp -i "my_k8s_key.pem" alpine-kube2.yaml ubuntu@192.168.80.58:~/ 
+scp -i "my_k8s_key.pem" alpine-kube1.yaml ubuntu@192.168.80.58:~/
+scp -i "my_k8s_key.pem" kubeadm-config.yaml ubuntu@192.168.80.58:~/
+scp -i "my_k8s_key.pem" kubeadm-config-join.yaml ubuntu@192.168.80.59:~/
+scp -i "my_k8s_key.pem" kubeadm-config-join.yaml ubuntu@192.168.80.60:~/
+
+sudo kubeadm init --config=kubeadm-config.yaml
