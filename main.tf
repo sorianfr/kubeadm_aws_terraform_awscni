@@ -143,6 +143,13 @@ resource "aws_security_group" "k8s_sg" {
   vpc_id = aws_vpc.k8s_vpc.id
 
   ingress {
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      security_groups = [aws_security_group.public_sg.id] # Allow SSH from the bastion
+    }
+
+  ingress {
     from_port   = 6443
     to_port     = 6443
     protocol    = "tcp"
