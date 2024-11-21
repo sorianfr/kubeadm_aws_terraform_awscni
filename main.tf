@@ -154,7 +154,7 @@ resource "aws_security_group" "k8s_sg" {
       to_port     = 6443
       protocol    = "tcp"
       cidr_blocks = ["10.244.0.0/16"] # Kubernetes API access for pods
-    }
+  }
   ingress {
     from_port   = 30000
     to_port     = 32767
@@ -238,8 +238,22 @@ resource "aws_security_group" "k8s_sg" {
   ingress {
     from_port   = 80
     to_port     = 80
-    protocol    = "http"
-    cidr_blocks = ["10.244.0.0/16"] # Restrict to control plane's private IP
+    protocol    = "tcp"
+    cidr_blocks = ["10.244.0.0/16"] 
+  }
+
+  ingress {
+    from_port   = -1 # Allow all ICMP types
+    to_port     = -1 # Allow all ICMP codes
+    protocol    = "icmp"
+    cidr_blocks = ["10.244.0.0/16"] # Pod CIDR for pod-to-pod communication
+  }
+
+  ingress {
+    from_port   = -1 # Allow all ICMP types
+    to_port     = -1 # Allow all ICMP codes
+    protocol    = "icmp"
+    cidr_blocks = ["192.168.0.0/16"] # VPC CIDR for node-to-node communication
   }
 
   egress {
