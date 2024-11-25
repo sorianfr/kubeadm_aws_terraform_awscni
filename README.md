@@ -14,13 +14,9 @@
    
 4. Initialize and Apply Terraform
    ```bash
-
-   scp -i "my_k8s_key.pem" alpine-kube2.yaml ubuntu@192.168.80.58:~/ 
-   scp -i "my_k8s_key.pem" alpine-kube1.yaml ubuntu@192.168.80.58:~/
-   scp -i "my_k8s_key.pem" kubeadm-config.yaml ubuntu@192.168.80.58:~/
-   scp -i "my_k8s_key.pem" kubeadm-config-join.yaml ubuntu@192.168.80.59:~/
-   scp -i "my_k8s_key.pem" kubeadm-config-join.yaml ubuntu@192.168.80.60:~/
+   terraform init
+   terraform apply -var="encapsulation=None"
 
 5. SSH inton Controlplane and start kubeadm
    ```bash
-   sudo kubeadm init --config=kubeadm-config.yaml
+   
