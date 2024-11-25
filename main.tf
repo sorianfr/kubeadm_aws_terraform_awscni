@@ -510,17 +510,18 @@
           "kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.0/manifests/tigera-operator.yaml",
           # Apply custom-resources.yaml file
           "kubectl apply -f custom-resources.yaml",
-          # Download calicoctl 
-          #"wget https://github.com/projectcalico/calico/releases/download/v3.29.0/calicoctl-linux-amd64",
-          #"chmod +x ./calicoctl-linux-amd64",
-          #"sudo mv calicoctl-linux-amd64 /usr/local/bin/calicoctl",
-          # Download k9s
-          #"wget https://github.com/derailed/k9s/releases/download/v0.32.7/k9s_linux_amd64.deb && sudo apt install ./k9s_linux_amd64.deb && rm k9s_linux_amd64.deb",
+          
           # Copy join_command.sh to worker nodes and execute
           "for worker in ${aws_instance.worker1.private_ip} ${aws_instance.worker2.private_ip}; do",
           "  scp -i my_k8s_key.pem -o StrictHostKeyChecking=no /tmp/join_command.sh ubuntu@$worker:~/",
           "  ssh -i my_k8s_key.pem -o StrictHostKeyChecking=no ubuntu@$worker 'chmod +x join_command.sh && sudo ./join_command.sh'",
-          "done"
+          "done",
+          # Download calicoctl 
+          "wget https://github.com/projectcalico/calico/releases/download/v3.29.0/calicoctl-linux-amd64",
+          "chmod +x ./calicoctl-linux-amd64",
+          "sudo mv calicoctl-linux-amd64 /usr/local/bin/calicoctl",
+          # Download k9s
+          "wget https://github.com/derailed/k9s/releases/download/v0.32.7/k9s_linux_amd64.deb && sudo apt install ./k9s_linux_amd64.deb && rm k9s_linux_amd64.deb"
         ]
 
         connection {
