@@ -538,13 +538,12 @@
         EOT
       }
     }
-
     resource "null_resource" "wait_for_worker2_setup" {
       provisioner "remote-exec" {
         inline = [
           "while [ ! -f /home/ubuntu/setup_completed.txt ]; do echo 'Waiting for setup to complete...'; sleep 10; done"
         ]
-
+    
         connection {
           type        = "ssh"
           host        = aws_instance.worker2.private_ip
@@ -556,6 +555,13 @@
           bastion_private_key = tls_private_key.k8s_key_pair.private_key_pem
         }
       }
+      provisioner "local-exec" {
+        command = "echo 'Controlplane setup complete' > ./setup_completed_worker2.txt"
+      }
+
+      depends_on = [null_resource.copy_files_to_bastion, aws_instance.worker2, local_file.save_private_key]
+    }
+    
     resource "null_resource" "wait_for_controlplane_setup" {
       provisioner "remote-exec" {
         inline = [
