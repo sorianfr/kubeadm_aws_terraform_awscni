@@ -209,6 +209,13 @@
         cidr_blocks = [var.pod_subnet] # Pod network CIDR
       }
 
+      ingress {
+        from_port   = -1
+        to_port     = -1
+        protocol    = "4" # Protocol 4 is for IP-in-IP
+        cidr_blocks = [var.vpc_cidr_block] # Pod network CIDR
+      }
+
       # etcd Communication (Control Plane Only)
       ingress {
         from_port   = 2379
@@ -216,6 +223,20 @@
         protocol    = "tcp"
         cidr_blocks = ["192.168.80.58/32"] # Restrict to control plane's private IP
       }
+
+      ingress {
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1" 
+        cidr_blocks = [var.pod_subnet] # Pod network CIDR
+      }
+
+      ingress {
+        from_port   = 0
+        to_port     = 0
+        protocol    = "-1" 
+        cidr_blocks = [var.vpc_cidr_block] # Pod network CIDR
+      }   
 
       egress {
         from_port   = 0
@@ -293,6 +314,7 @@
       EOF
     }
 
+    
     # Worker2 User Data
     data "template_file" "worker2_user_data" {
       template = <<-EOF
@@ -307,12 +329,66 @@
       EOF
     }
 
+    # IAM Role for EC2 instances to access S3 and other resources
+    resource "aws_iam_role" "k8s_instance_role" {
+      name = "k8s_instance_role"
+    
+      assume_role_policy = jsonencode({
+        Version = "2012-10-17",
+        Statement = [
+          {
+            Action = "sts:AssumeRole",
+            Effect = "Allow",
+            Principal = {
+              Service = "ec2.amazonaws.com"
+            }
+          }
+        ]
+      })
+    }
+
+    
+
+    # Create EBS Policy
+    resource "aws_iam_policy" "ebs_policy" {
+      name        = "EBSAccessPolicy"
+      description = "Policy to allow EBS volume management"
+      policy = jsonencode({
+        Version = "2012-10-17",
+        Statement: [
+          {
+            Effect: "Allow",
+            Action: [
+              "ec2:AttachVolume",
+              "ec2:DetachVolume",
+              "ec2:CreateVolume",
+              "ec2:DeleteVolume",
+              "ec2:DescribeVolume*",
+              "ec2:ModifyVolume",
+              "ec2:DescribeInstances"
+            ],
+            Resource: "*"
+          }
+        ]
+      })
+    }
+    # Attach policy to role
+    resource "aws_iam_role_policy_attachment" "attach_policy" {
+      role       = aws_iam_role.k8s_instance_role.name
+      policy_arn = aws_iam_policy.ebs_policy.arn
+    }
+    # Create instance profile to be attached to ec2 instances. 
+    resource "aws_iam_instance_profile" "k8s_instance_profile" {
+      name = "k8s_instance_profile"
+      role = aws_iam_role.k8s_instance_role.name
+    }
     # Control Plane Instance
     resource "aws_instance" "controlplane" {
       ami                         = var.ami_id
       instance_type               = var.instance_type
       subnet_id                   = aws_subnet.k8s_private_subnet.id
       vpc_security_group_ids      = [aws_security_group.k8s_sg.id]
+      iam_instance_profile        = aws_iam_instance_profile.k8s_instance_profile.name
       key_name                    = aws_key_pair.k8s_key_pair.key_name
       private_ip                  = var.controlplane_ip
       user_data                   = data.template_file.controlplane_user_data.rendered
@@ -335,6 +411,7 @@
         instance_type               = var.instance_type
         subnet_id                   = aws_subnet.k8s_private_subnet.id
         vpc_security_group_ids      = [aws_security_group.k8s_sg.id]
+        iam_instance_profile        = aws_iam_instance_profile.k8s_instance_profile.name
         key_name                    = aws_key_pair.k8s_key_pair.key_name
         private_ip                  = "192.168.80.59"  # Specify your desired private IP here
         user_data                   = data.template_file.worker1_user_data.rendered
@@ -354,6 +431,7 @@
         instance_type               = var.instance_type
         subnet_id                   = aws_subnet.k8s_private_subnet.id
         vpc_security_group_ids      = [aws_security_group.k8s_sg.id]
+        iam_instance_profile        = aws_iam_instance_profile.k8s_instance_profile.name
         key_name                    = aws_key_pair.k8s_key_pair.key_name
         private_ip                  = "192.168.80.60"  # Specify your desired private IP here
         user_data                   = data.template_file.worker2_user_data.rendered
