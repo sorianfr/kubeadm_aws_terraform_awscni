@@ -616,7 +616,9 @@
       
       provisioner "remote-exec" {
         inline = [
-          "sudo kubeadm init --config=kubeadm-config.yaml | tee /tmp/kubeadm_output.log",
+          #"sudo kubeadm init --config=kubeadm-config.yaml | tee /tmp/kubeadm_output.log",
+          "sudo kubeadm init --pod-network-cidr=${var.pod_subnet} --service-cidr=10.96.0.0/16 --apiserver-advertise-address=${var.controlplane_ip} --apiserver-bind-port=6443 --node-name=controlplane | tee /tmp/kubeadm_output.log",
+
           # Cluster Initialization Instructions 
           "mkdir -p $HOME/.kube",
           "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
