@@ -525,7 +525,7 @@
 
     # Define the local-exec provisioner for each instance to update /etc/hosts
     resource "null_resource" "update_hosts" {
-      depends_on = [null_resource.copy_files_to_bastion, aws_instance.bastion, aws_instance.controlplane, aws_instance.worker1, aws_instance.worker2, null_resource.wait_for_worker2_setup]
+      depends_on = [null_resource.copy_files_to_bastion, aws_instance.bastion, aws_instance.controlplane, aws_instance.worker1, aws_instance.worker2, null_resource.wait_for_controlplane_setup, null_resource.wait_for_worker1_setup,  null_resource.wait_for_worker2_setup]
 
       provisioner "local-exec" {
         command = <<-EOT
@@ -660,5 +660,5 @@
         }
       }
 
-      depends_on = [aws_instance.controlplane, aws_instance.bastion, null_resource.wait_for_controlplane_setup, null_resource.wait_for_worker1_setup, null_resource.wait_for_worker2_setup, null_resource.copy_files_to_controlplane]
+      depends_on = [aws_instance.controlplane, aws_instance.bastion, null_resource.wait_for_controlplane_setup, null_resource.wait_for_worker1_setup, null_resource.wait_for_worker2_setup, null_resource.copy_files_to_controlplane, null_resource.update_hosts]
     }
