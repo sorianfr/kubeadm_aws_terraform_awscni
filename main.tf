@@ -330,8 +330,8 @@
     }
 
     # IAM Role for EC2 instances to access S3 and other resources
-    resource "aws_iam_role" "k8s_instance_role" {
-      name = "k8s_instance_role"
+    resource "aws_iam_role" "AmazonEBSCSIDriverRole" {
+      name = "AmazonEBSCSIDriverRole"
     
       assume_role_policy = jsonencode({
         Version = "2012-10-17",
@@ -348,39 +348,15 @@
     }
 
     
-
-    # Create EBS Policy
-    resource "aws_iam_policy" "ebs_policy" {
-      name        = "EBSAccessPolicy"
-      description = "Policy to allow EBS volume management"
-      policy = jsonencode({
-        Version = "2012-10-17",
-        Statement: [
-          {
-            Effect: "Allow",
-            Action: [
-              "ec2:AttachVolume",
-              "ec2:DetachVolume",
-              "ec2:CreateVolume",
-              "ec2:DeleteVolume",
-              "ec2:DescribeVolume*",
-              "ec2:ModifyVolume",
-              "ec2:DescribeInstances"
-            ],
-            Resource: "*"
-          }
-        ]
-      })
-    }
     # Attach policy to role
     resource "aws_iam_role_policy_attachment" "attach_policy" {
-      role       = aws_iam_role.k8s_instance_role.name
-      policy_arn = aws_iam_policy.ebs_policy.arn
+      role       = aws_iam_role.AmazonEBSCSIDriverRole.name
+      policy_arn = arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy
     }
     # Create instance profile to be attached to ec2 instances. 
-    resource "aws_iam_instance_profile" "k8s_instance_profile" {
-      name = "k8s_instance_profile"
-      role = aws_iam_role.k8s_instance_role.name
+    resource "aws_iam_instance_profile" "AmazonEBS_instance_profile" {
+      name = "AmazonEBS_instance_profile"
+      role = aws_iam_role.AmazonEBSCSIDriverRole.name
     }
     # Control Plane Instance
     resource "aws_instance" "controlplane" {
@@ -388,7 +364,7 @@
       instance_type               = var.instance_type
       subnet_id                   = aws_subnet.k8s_private_subnet.id
       vpc_security_group_ids      = [aws_security_group.k8s_sg.id]
-      iam_instance_profile        = aws_iam_instance_profile.k8s_instance_profile.name
+      iam_instance_profile        = aws_iam_instance_profile.AmazonEBS_instance_profile.name
       key_name                    = aws_key_pair.k8s_key_pair.key_name
       private_ip                  = var.controlplane_ip
       user_data                   = data.template_file.controlplane_user_data.rendered
@@ -411,7 +387,7 @@
         instance_type               = var.instance_type
         subnet_id                   = aws_subnet.k8s_private_subnet.id
         vpc_security_group_ids      = [aws_security_group.k8s_sg.id]
-        iam_instance_profile        = aws_iam_instance_profile.k8s_instance_profile.name
+        iam_instance_profile        = aws_iam_instance_profile.AmazonEBS_instance_profile.name
         key_name                    = aws_key_pair.k8s_key_pair.key_name
         private_ip                  = "192.168.80.59"  # Specify your desired private IP here
         user_data                   = data.template_file.worker1_user_data.rendered
@@ -431,7 +407,7 @@
         instance_type               = var.instance_type
         subnet_id                   = aws_subnet.k8s_private_subnet.id
         vpc_security_group_ids      = [aws_security_group.k8s_sg.id]
-        iam_instance_profile        = aws_iam_instance_profile.k8s_instance_profile.name
+        iam_instance_profile        = aws_iam_instance_profile.AmazonEBS_instance_profile.name
         key_name                    = aws_key_pair.k8s_key_pair.key_name
         private_ip                  = "192.168.80.60"  # Specify your desired private IP here
         user_data                   = data.template_file.worker2_user_data.rendered
