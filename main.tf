@@ -351,7 +351,7 @@
     # Attach policy to role
     resource "aws_iam_role_policy_attachment" "attach_policy" {
       role       = aws_iam_role.AmazonEBSCSIDriverRole.name
-      policy_arn = arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy
+      policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
     }
     # Create instance profile to be attached to ec2 instances. 
     resource "aws_iam_instance_profile" "AmazonEBS_instance_profile" {
