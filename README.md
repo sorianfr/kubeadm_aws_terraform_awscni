@@ -4,7 +4,7 @@
 1. Clone this repository to your local machine:
 
    ```bash
-   git clone https://github.com/sorianfr/kubeadm_aws_terraform.git
+   git clone https://github.com/sorianfr/kubeadm_aws_terraform_awscni.git
 
 2. Download and Install Terraform
    ```bash
