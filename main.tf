@@ -602,7 +602,8 @@
           "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
           "sudo chown $(id -u):$(id -g) $HOME/.kube/config",
           # Initialize the Kubernetes Control Plane
-          "kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.12/aws-k8s-cni.yaml",
+
+          "kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/v1.18.6/config/master/aws-k8s-cni.yaml",
           # Wait for control plane to be ready
           "kubectl wait --for=condition=Ready nodes --all --timeout=300s",  
           # Extract the token from the second line of the kubeadm token list output
