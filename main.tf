@@ -353,6 +353,13 @@
       role       = aws_iam_role.AmazonEBSCSIDriverRole.name
       policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
     }
+
+    # Attach AWS CNI policy to the role
+    resource "aws_iam_role_policy_attachment" "attach_cni_policy" {
+      role       = aws_iam_role.AmazonEBSCSIDriverRole.name
+      policy_arn = "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy"
+    }
+
     # Create instance profile to be attached to ec2 instances. 
     resource "aws_iam_instance_profile" "AmazonEBS_instance_profile" {
       name = "AmazonEBS_instance_profile"
