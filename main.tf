@@ -593,19 +593,16 @@
       depends_on = [null_resource.copy_files_to_bastion, aws_instance.worker1, local_file.save_private_key]
     }
     resource "null_resource" "kubeadm_init" {
-      
-      
-      
-      
       provisioner "remote-exec" {
         inline = [
-          #"sudo kubeadm init --config=kubeadm-config.yaml | tee /tmp/kubeadm_output.log",
-          "sudo kubeadm init --pod-network-cidr=${var.pod_subnet} --service-cidr=10.96.0.0/16 --apiserver-advertise-address=${var.controlplane_ip} --apiserver-bind-port=6443 --node-name=controlplane | tee /tmp/kubeadm_output.log",
-
+          # Kubeadm init
+          "sudo kubeadm init --control-plane-endpoint ${var.controlplane_ip}:6443",
           # Cluster Initialization Instructions 
           "mkdir -p $HOME/.kube",
           "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
           "sudo chown $(id -u):$(id -g) $HOME/.kube/config",
+          # Wait for control plane to be ready
+          "kubectl wait --for=condition=Ready nodes --all --timeout=300s",  
           # Extract the token from the second line of the kubeadm token list output
           "TOKEN=$(sudo kubeadm token list | awk 'NR==2 {print $1}')",
           # Extract the CA cert hash
@@ -614,22 +611,14 @@
           "API_SERVER=${aws_instance.controlplane.private_ip}:6443",
           # Construct the join command and save it
           "echo \"sudo kubeadm join $API_SERVER --token $TOKEN --discovery-token-ca-cert-hash sha256:$CERT_HASH\" > /tmp/join_command.sh",
-          # Create Calico Tigera Operator
-          "kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.0/manifests/tigera-operator.yaml",
-          # Apply custom-resources.yaml file
-          "kubectl apply -f custom-resources.yaml",
-          
+          # Initialize the Kubernetes Control Plane
+          "kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.12/aws-k8s-cni.yaml",
           # Copy join_command.sh to worker nodes and execute
           "for worker in ${aws_instance.worker1.private_ip} ${aws_instance.worker2.private_ip}; do",
           "  scp -i my_k8s_key.pem -o StrictHostKeyChecking=no /tmp/join_command.sh ubuntu@$worker:~/",
           "  ssh -i my_k8s_key.pem -o StrictHostKeyChecking=no ubuntu@$worker 'chmod +x join_command.sh && sudo ./join_command.sh'",
-          "done",
-          # Download calicoctl 
-          "wget https://github.com/projectcalico/calico/releases/download/v3.29.0/calicoctl-linux-amd64",
-          "chmod +x ./calicoctl-linux-amd64",
-          "sudo mv calicoctl-linux-amd64 /usr/local/bin/calicoctl",
-          # Download k9s
-          "wget https://github.com/derailed/k9s/releases/download/v0.32.7/k9s_linux_amd64.deb && sudo apt install ./k9s_linux_amd64.deb && rm k9s_linux_amd64.deb"
+          "done"
+          
         ]
 
         connection {
