@@ -601,6 +601,8 @@
           "mkdir -p $HOME/.kube",
           "sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config",
           "sudo chown $(id -u):$(id -g) $HOME/.kube/config",
+          # Initialize the Kubernetes Control Plane
+          "kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.12/aws-k8s-cni.yaml",
           # Wait for control plane to be ready
           "kubectl wait --for=condition=Ready nodes --all --timeout=300s",  
           # Extract the token from the second line of the kubeadm token list output
@@ -611,8 +613,6 @@
           "API_SERVER=${aws_instance.controlplane.private_ip}:6443",
           # Construct the join command and save it
           "echo \"sudo kubeadm join $API_SERVER --token $TOKEN --discovery-token-ca-cert-hash sha256:$CERT_HASH\" > /tmp/join_command.sh",
-          # Initialize the Kubernetes Control Plane
-          "kubectl apply -f https://raw.githubusercontent.com/aws/amazon-vpc-cni-k8s/master/config/v1.12/aws-k8s-cni.yaml",
           # Copy join_command.sh to worker nodes and execute
           "for worker in ${aws_instance.worker1.private_ip} ${aws_instance.worker2.private_ip}; do",
           "  scp -i my_k8s_key.pem -o StrictHostKeyChecking=no /tmp/join_command.sh ubuntu@$worker:~/",
